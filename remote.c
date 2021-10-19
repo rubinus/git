@@ -542,16 +542,16 @@ static inline struct remote *remotes_pushremote_get(struct remote_state *remote_
 	return remotes_remote_get_1(remote_state, name, pushremote_for_branch);
 }
 
-struct remote *remote_get(const char *name)
+struct remote *repo_remote_get(struct repository *repo, const char *name)
 {
-	read_config(the_repository);
-	return remotes_remote_get(the_repository->remote_state, name);
+	read_config(repo);
+	return remotes_remote_get(repo->remote_state, name);
 }
 
-struct remote *pushremote_get(const char *name)
+struct remote *repo_pushremote_get(struct repository *repo, const char *name)
 {
-	read_config(the_repository);
-	return remotes_pushremote_get(the_repository->remote_state, name);
+	read_config(repo);
+	return remotes_pushremote_get(repo->remote_state, name);
 }
 
 const char *pushremote_for_branch(struct branch *branch, int *explicit)
@@ -601,14 +601,14 @@ int remote_is_configured(struct remote *remote, int in_repo)
 	return !!remote->origin;
 }
 
-int for_each_remote(each_remote_fn fn, void *priv)
+int repo_for_each_remote(struct repository *repo, each_remote_fn fn, void *priv)
 {
 	int i, result = 0;
-	read_config(the_repository);
-	for (i = 0; i < the_repository->remote_state->remotes_nr && !result;
+	read_config(repo);
+	for (i = 0; i < repo->remote_state->remotes_nr && !result;
 	     i++) {
 		struct remote *remote =
-			the_repository->remote_state->remotes[i];
+			repo->remote_state->remotes[i];
 		if (!remote)
 			continue;
 		result = fn(remote, priv);
@@ -1713,16 +1713,15 @@ static void set_merge(struct branch *ret)
 	}
 }
 
-struct branch *branch_get(const char *name)
+struct branch *repo_branch_get(struct repository *repo, const char *name)
 {
 	struct branch *ret;
 
-	read_config(the_repository);
+	read_config(repo);
 	if (!name || !*name || !strcmp(name, "HEAD"))
-		ret = the_repository->remote_state->current_branch;
+		ret = repo->remote_state->current_branch;
 	else
-		ret = make_branch(the_repository->remote_state, name,
-				  strlen(name));
+		ret = make_branch(repo->remote_state, name, strlen(name));
 	set_merge(ret);
 	return ret;
 }
