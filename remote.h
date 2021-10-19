@@ -52,6 +52,8 @@ struct remote_state {
 
 	struct rewrites rewrites;
 	struct rewrites rewrites_push;
+
+	int initialized;
 };
 
 void remote_state_clear(struct remote_state *remote_state);
@@ -110,6 +112,10 @@ struct remote {
 
 	/* The method used for authenticating against `http_proxy`. */
 	char *http_proxy_authmethod;
+
+	/** The remote_state that this remote belongs to. This is only meant to
+	 * be used by remote_* functions. */
+	struct remote_state *remote_state;
 };
 
 /**
@@ -318,6 +324,10 @@ struct branch {
 	int merge_alloc;
 
 	const char *push_tracking_ref;
+
+	/** The remote_state that this branch belongs to. This is only meant to
+	 * be used by branch_* functions. */
+	struct remote_state *remote_state;
 };
 
 struct branch *branch_get(const char *name);
