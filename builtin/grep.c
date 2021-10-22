@@ -199,8 +199,8 @@ static void *run(void *arg)
 		grep_source_clear_data(&w->source);
 		work_done(w);
 	}
-	free_grep_patterns(arg);
-	free(arg);
+	free_grep_patterns(opt);
+	free(opt);
 
 	return (void*) (intptr_t) hit;
 }
@@ -1196,6 +1196,7 @@ int cmd_grep(int argc, const char **argv, const char *prefix)
 		run_pager(&opt, prefix);
 	clear_pathspec(&pathspec);
 	free_grep_patterns(&opt);
+	object_array_clear(&list);
 	free_repos();
 	return !hit;
 }
