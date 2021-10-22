@@ -292,8 +292,8 @@ static int load_bitmap_entries_v1(struct bitmap_index *index)
 
 char *midx_bitmap_filename(struct multi_pack_index *midx)
 {
-	return xstrfmt("%s-%s.bitmap",
-		       get_midx_filename(midx->object_dir),
+	return xstrfmt("%s/pack/multi-pack-index-%s.bitmap",
+		       midx->object_dir,
 		       hash_to_hex(get_midx_checksum(midx)));
 }
 
@@ -1721,6 +1721,12 @@ void test_bitmap_walk(struct rev_info *revs)
 	else
 		die("mismatch in bitmap results");
 
+	bitmap_free(result);
+	bitmap_free(tdata.base);
+	bitmap_free(tdata.commits);
+	bitmap_free(tdata.trees);
+	bitmap_free(tdata.blobs);
+	bitmap_free(tdata.tags);
 	free_bitmap_index(bitmap_git);
 }
 
@@ -1848,9 +1854,17 @@ void free_bitmap_index(struct bitmap_index *b)
 	ewah_pool_free(b->trees);
 	ewah_pool_free(b->blobs);
 	ewah_pool_free(b->tags);
+	if (b->bitmaps) {
+		struct stored_bitmap *sb;
+		kh_foreach_value(b->bitmaps, sb, {
+			ewah_pool_free(sb->root);
+			free(sb);
+		});
+	}
 	kh_destroy_oid_map(b->bitmaps);
 	free(b->ext_index.objects);
 	free(b->ext_index.hashes);
+	kh_destroy_oid_pos(b->ext_index.positions);
 	bitmap_free(b->result);
 	bitmap_free(b->haves);
 	if (bitmap_is_midx(b)) {
